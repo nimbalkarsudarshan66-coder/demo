@@ -7,7 +7,9 @@ function start_secure_session(): void
     session_name(SESSION_NAME);
     session_set_cookie_params([
         'lifetime' => 0,
+
         'path' => app_base_path() ?: '/',
+        'path' => '/',
         'secure' => !empty($_SERVER['HTTPS']),
         'httponly' => true,
         'samesite' => 'Lax',
@@ -51,6 +53,13 @@ function app_url(string $path = ''): string
 }
 
 function app_asset(string $path): string { return app_url($path); }
+function redirect(string $path): never { header('Location: ' . $path); exit; }
+function current_user(): ?array { start_secure_session(); return $_SESSION['user'] ?? null; }
+function is_admin(): bool { $u = current_user(); return $u && ($u['role'] ?? '') === 'admin'; }
+function require_login(): void { if (!current_user()) redirect('/login.php'); }
+function require_admin(): void { require_login(); if (!is_admin()) { http_response_code(403); exit('Forbidden'); } }
+function app_asset(string $path): string { return '/' . ltrim($path, '/'); }
+
 
 function upload_profile_image(array $file): ?string
 {
