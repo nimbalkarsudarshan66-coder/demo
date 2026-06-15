@@ -1,0 +1,5 @@
+const root=document.documentElement, toggle=document.getElementById('themeToggle');
+function setTheme(mode){root.dataset.theme=mode;localStorage.setItem('theme',mode);if(toggle){toggle.innerHTML=mode==='dark'?'<i class="fa-solid fa-sun"></i> <span>Light Mode</span>':'<i class="fa-solid fa-moon"></i> <span>Dark Mode</span>';}}
+setTheme(localStorage.getItem('theme')||'light');
+toggle?.addEventListener('click',()=>setTheme(root.dataset.theme==='dark'?'light':'dark'));
+document.querySelectorAll('[data-chart]').forEach(canvas=>{const type=canvas.dataset.chart;new Chart(canvas,{type:type==='doughnut'?'doughnut':'line',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{label:canvas.dataset.label||'Stats',data:(canvas.dataset.values||'12,19,13,25,22,30,28').split(',').map(Number),borderColor:'#FF5722',backgroundColor:['#FF5722','#FF9800','#F44336','#ffc107','#ff7043','#e64a19','#bf360c'],tension:.4,fill:type!=='doughnut'}]},options:{responsive:true,plugins:{legend:{display:type==='doughnut'}}}})});
