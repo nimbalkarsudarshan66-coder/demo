@@ -7,6 +7,8 @@ function start_secure_session(): void
     session_name(SESSION_NAME);
     session_set_cookie_params([
         'lifetime' => 0,
+
+        'path' => app_base_path() ?: '/',
         'path' => '/',
         'secure' => !empty($_SERVER['HTTPS']),
         'httponly' => true,
@@ -18,12 +20,46 @@ function start_secure_session(): void
 function e(?string $value): string { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
 function csrf_token(): string { start_secure_session(); return $_SESSION['csrf'] ??= bin2hex(random_bytes(32)); }
 function verify_csrf(?string $token): bool { start_secure_session(); return hash_equals($_SESSION['csrf'] ?? '', (string)$token); }
+function redirect(string $path): never { header('Location: ' . app_url($path)); exit; }
+function current_user(): ?array { start_secure_session(); return $_SESSION['user'] ?? null; }
+function is_admin(): bool { $u = current_user(); return $u && ($u['role'] ?? '') === 'admin'; }
+function require_login(): void { if (!current_user()) redirect('login.php'); }
+function require_admin(): void { require_login(); if (!is_admin()) { http_response_code(403); exit('Forbidden'); } }
+function app_base_path(): string
+{
+    if (defined('APP_BASE_PATH') && APP_BASE_PATH !== '') {
+        return rtrim(APP_BASE_PATH, '/');
+    }
+
+    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+    $scriptDir = $scriptDir === '/' ? '' : rtrim($scriptDir, '/');
+    $lastSegment = basename($scriptDir);
+
+    if (in_array($lastSegment, ['admin', 'api', 'user'], true)) {
+        $scriptDir = rtrim(dirname($scriptDir), '/');
+        return $scriptDir === '/' ? '' : $scriptDir;
+    }
+
+    return $scriptDir;
+}
+
+function app_url(string $path = ''): string
+{
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    $base = app_base_path();
+    return ($base === '' ? '' : $base) . '/' . ltrim($path, '/');
+}
+
+function app_asset(string $path): string { return app_url($path); }
 function redirect(string $path): never { header('Location: ' . $path); exit; }
 function current_user(): ?array { start_secure_session(); return $_SESSION['user'] ?? null; }
 function is_admin(): bool { $u = current_user(); return $u && ($u['role'] ?? '') === 'admin'; }
 function require_login(): void { if (!current_user()) redirect('/login.php'); }
 function require_admin(): void { require_login(); if (!is_admin()) { http_response_code(403); exit('Forbidden'); } }
 function app_asset(string $path): string { return '/' . ltrim($path, '/'); }
+
 
 function upload_profile_image(array $file): ?string
 {
