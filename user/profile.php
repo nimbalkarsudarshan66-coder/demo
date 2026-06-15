@@ -1,0 +1,1 @@
+<?php require __DIR__.'/../includes/auth.php'; require_login(); $u=current_user(); $title='Profile'; require __DIR__.'/../includes/header.php'; ?><section class="py-5"><div class="container"><div class="glass-card p-4"><h1>Profile</h1><p>Name: <?=e($u['name'])?></p><p>Email: <?=e($u['email'])?></p></div></div></section><?php require __DIR__.'/../includes/footer.php'; ?>
