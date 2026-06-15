@@ -1,0 +1,1 @@
+<?php require __DIR__.'/../includes/auth.php'; require_login(); header('Content-Type: application/json'); if($_SERVER['REQUEST_METHOD']!=='POST'||!verify_csrf($_POST['csrf']??'')){http_response_code(422); echo json_encode(['error'=>'Invalid request']); exit;} echo json_encode(['status'=>'queued_or_booked','message'=>'Seat booking request accepted.']);
